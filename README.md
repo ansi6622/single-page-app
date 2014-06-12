@@ -26,7 +26,13 @@ For more information on hypermedia APIs, see http://tools.ietf.org/html/draft-ke
 
 ## Setup
 
+* Make sure that Firefox is installed (used for running Selenium tests)
 * Add the `ejs` gem (see http://embeddedjs.com/ for more details)
+* Add the `ejs` plugin to RubyMine
+    * Go to Preferences > Plugins > Browse Repositories 
+    * Search EJS
+    * Right-click to install
+    * Restart Rubymine)
 * Be sure to restart your server after adding the `ejs` gem
 * Add a file which will store your people app, and initialize the app in the view
 * Create a `app/assets/javascripts/templates` directory and add your `.jst.ejs` templates in that directory
