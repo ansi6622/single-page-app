@@ -1,13 +1,13 @@
 <div class="person-edit">
   <div class="actions">
-    <a href="<%= _links.self.href %>" data-behavior="delete-person">
+    <a href="<%= url %>" data-behavior="delete-person">
       delete
     </a>
     |
     <a href="#" data-behavior="cancel-edit">cancel</a>
   </div>
 
-  <form action="<%= _links.self.href %>" data-behavior="update-person">
+  <form action="<%= url %>" data-behavior="update-person">
     <input type="hidden" name="_method" value="patch"/>
 
     <div data-container="errors"></div>

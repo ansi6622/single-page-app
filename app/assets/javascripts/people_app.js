@@ -10,15 +10,12 @@
 // We don't necessarily endorse any of these techniques as best-practices for building apps, but we do think they
 // are concepts that can be helpful to understand.
 //
+
 window.PeopleApp = {
 
   initialize: function (path) {
     $.getJSON(path, this.renderInitialPage);
     $(document).on("submit", "[data-behavior=create-person]", this.didSubmitPersonCreateForm.bind(this));
-    $(document).on("submit", "[data-behavior=update-person]", this.didSubmitPersonUpdateForm.bind(this));
-    $(document).on("click", "[data-behavior=delete-person]", this.didClickDeleteLink);
-    $(document).on("click", "[data-behavior=edit-person]", this.didClickEditLink);
-    $(document).on("click", "[data-behavior=cancel-edit]", this.didClickCancelEditLink);
   },
 
   // This function is called with data from GET /people
@@ -37,9 +34,17 @@ window.PeopleApp = {
     $("[data-container=main]").append(html);
 
     $.each(response._embedded.people, function () {
-      var $html = $(JST['templates/person_show'](this));
-      $html.data('person', this);
-      $("[data-container=people]").append($html);
+      var $personDiv = $("<div class=person></div>");
+      $personDiv.append($(JST['templates/person_show'](this)));
+      $("[data-container=people]").append($personDiv);
+
+      var person = new PersonView(
+        this.first_name,
+        this.last_name,
+        this.address,
+        this._links.self.href,
+        $personDiv
+      );
     });
   },
 
@@ -77,87 +82,6 @@ window.PeopleApp = {
     }.bind(this));
   },
 
-  // This function is called when a person clicks the submit button on an edit person form
-  // It is responsible for:
-  //
-  //  * creating a json string to send to the server, based off of the form fields (first name, last name etc...)
-  //  * sending that json string to the server with a PATCH request
-  //  * setting up the callbacks that will be triggered when the server returns a 200 OK
-  //  * setting up the callbacks that will be triggered when the server returns with validation errors
-  //
-  didSubmitPersonUpdateForm: function (event) {
-    event.preventDefault();
-
-    var formParams = {};
-    $.each($(event.target).serializeArray(), function (object) {
-      formParams[this.name] = this.value;
-    });
-    var jsonForServer = JSON.stringify(formParams);
-
-    var jqxhr = $.ajax({
-      type: "PATCH",
-      url: event.target.action,
-      data: jsonForServer,
-      dataType: 'json',
-      contentType: 'application/json'
-    });
-
-    jqxhr.done(function (object) {
-      this.personWasUpdated(event.target, object);
-    }.bind(this));
-
-    jqxhr.fail(function (xhr) {
-      this.personWasNotSaved(event.target, xhr.responseJSON);
-    }.bind(this));
-  },
-
-  // This function is called when a person clicks the delete link for a person
-  // It is responsible for:
-  //
-  //  * asking the user to confirm whether or not they really want to delete the person
-  //  * sending a DELETE request to the server
-  //  * setting up the callbacks that will be triggered when the server returns a 200 OK
-  //  * NOTE: we don't normally expect a failure case on delete, so we don't explicitly handle the error out of laziness
-  //
-  didClickDeleteLink: function (event) {
-    if (confirm("Are you sure?")) {
-      var jqxhr = $.ajax({
-        type: "DELETE",
-        url: event.target.href
-      });
-
-      jqxhr.done(function () {
-        $(event.target).closest(".person").remove();
-      });
-    }
-    return false;
-  },
-
-  // This function is called when a person clicks the edit link for a person
-  // It is responsible for:
-  //
-  //  * replacing the person's show div with an edit form for that person
-  //  * pre-filling the form fields with values from the person JSON object
-  //
-  didClickEditLink: function (event) {
-    var $html = JST['templates/person_edit']($(event.target).closest(".person").data('person'));
-    $(event.target).closest(".person").html($html);
-    return false;
-  },
-
-  // This function is called when a person clicks the cancel link after clicking "edit" on a person
-  // It is responsible for:
-  //
-  //  * replacing the person's edit form with the "show" div for that person
-  //  * making sure that the new "show" div has a reference to the JSON for that person
-  //
-  didClickCancelEditLink: function (event) {
-    var $html = $(JST['templates/person_show']($(event.target).closest(".person").data('person')));
-    $html.data('person', $(event.target).closest(".person").data('person'));
-    $(event.target).closest(".person").replaceWith($html);
-    return false;
-  },
-
   // This function is called when the server returns a 200 after creating a person
   // It is responsible for:
   //
@@ -169,7 +93,6 @@ window.PeopleApp = {
     $(".field-with-errors").removeClass("field-with-errors");
     form.reset();
     var $html = $(JST['templates/person_show'](person));
-    $html.data('person', person);
     $("[data-container=people]").append($html);
   },
 
@@ -187,22 +110,6 @@ window.PeopleApp = {
     $.each(errors.fields, function () {
       $form.find("input[name=" + this + "]").closest(".form-row").addClass("field-with-errors");
     });
-  },
-
-  // This function is called when the server returns a 200 OK response after updating a person
-  // It is responsible for:
-  //
-  //  * replacing the "edit" view of the person with the "show" view for that person
-  //  * making sure that the new "show" view has a reference to the most recent data for the person
-  //
-  personWasUpdated: function (form, person) {
-    var $form = $(form);
-    $form.find("[data-container=errors]").empty();
-    $form.find(".field-with-errors").removeClass("field-with-errors");
-    form.reset();
-    var $html = $(JST['templates/person_show'](person));
-    $html.data('person', person);
-    $form.closest(".person").replaceWith($html);
   }
 
 };
