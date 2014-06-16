@@ -5,7 +5,7 @@ function PersonView(firstName, lastName, address, url, $personDiv) {
   this.url = url;
   this.$personDiv = $personDiv;
 
-  $(document).on("submit", "[data-behavior=update-person]", this.didSubmitPersonUpdateForm.bind(this));
+  $personDiv.on("submit", "[data-behavior=update-person]", this.didSubmitPersonUpdateForm.bind(this));
   $personDiv.on("click", "[data-behavior=edit-person]", this.didClickEditLink.bind(this));
   $personDiv.on("click", "[data-behavior=delete-person]", this.didClickDeleteLink.bind(this));
   $personDiv.on("click", "[data-behavior=cancel-edit]", this.didClickCancelEditLink.bind(this));
